@@ -11,6 +11,19 @@ const depthFirst = (dirName, arr) => {
     return dirSize;
 }
 
+//PART2
+allDirsSize = []
+const depthFirstPart2 = (dirName, arr) => {
+    dirSize = 0
+    arr.forEach(element => {
+        if (element.directory) dirSize += depthFirstPart2(dirName + element.dirName + '/', element.dir);
+        else dirSize += element.fileSize;
+    });
+    allDirsSize.push({dirName: dirName, dirSize: dirSize})
+    return dirSize;
+}
+//PART2
+
 fs.readFile('Input.txt', 'utf-8', (err, data) => {
     if (err) throw err;
 
@@ -93,6 +106,23 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
     smallDirs.forEach(smallDir => {
         combinedSmallDirSize += smallDir.dirSize;
     })
+    
+    //PART2
+    depthFirstPart2('/', drive);
+    allDirsSize.sort((a, b) =>  a.dirSize - b.dirSize);
+    console.log(allDirsSize)
+    neededSize = allDirsSize[allDirsSize.length - 1].dirSize - (70000000 - 30000000)
+    bestDirToRemove = {}
+    allDirsSize.every(dir => {
+        if(dir.dirSize > neededSize) {
+            bestDirToRemove = dir;
+            return false;
+        }
+        return true;
+    })
+    //PART2
+
     console.log(`The total small dir size is ${combinedSmallDirSize}`)
+    console.log(`The best dir to remove is ${bestDirToRemove.dirName} with a size of ${bestDirToRemove.dirSize}`)
 });
 
