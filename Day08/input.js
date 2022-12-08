@@ -109,6 +109,51 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
     console.log(visableTreesIndex);
 
     console.log(`Total trees visable from the outside ${visableTreesIndex.length}`)
+
+
+
+    //PART 2
+    scenicScore = []
+    for (row = 0; row < treeMap.length; row++){
+        scenicScore.push([])
+        for (col = 0; col < treeMap[row].length; col++) {
+            treeScenicScore = {northView: 0, southView: 0, westView: 0, eastView: 0};
+            searchCol = col;
+            while (searchCol > 0) { //Look West
+                searchCol--;
+                treeScenicScore.westView++;
+                if (treeMap[row][col] <= treeMap[row][searchCol]) break;
+            }
+            searchCol = col;
+            while (searchCol < treeMap[row].length - 1) { //Look East
+                searchCol++;
+                treeScenicScore.eastView++;
+                if (treeMap[row][col] <= treeMap[row][searchCol]) break;
+            }
+            searchRow = row;
+            while (searchRow > 0) { //Look North
+                searchRow--;
+                treeScenicScore.northView++;
+                if (treeMap[row][col] <= treeMap[searchRow][col]) break;
+            }
+            searchRow = row;
+            while (searchRow < treeMap.length - 1) { //Look South
+                searchRow++;
+                treeScenicScore.southView++;
+                if (treeMap[row][col] <= treeMap[searchRow][col]) break;
+            }
+            totalTreeScenicScore = treeScenicScore.northView * treeScenicScore.southView * treeScenicScore.eastView * treeScenicScore.westView;
+            scenicScore[row].push(totalTreeScenicScore);
+        }
+    }
+    console.log(scenicScore);
+    topScenicScore = 0;
+    for (row of scenicScore) {
+        for (value of row) {
+            if (value > topScenicScore) topScenicScore = value;
+        }
+    }
+    console.log(`The highest scenic score is ${topScenicScore}`)
 })
 
 compareArrays = (arrOne, arrTwo) => {
