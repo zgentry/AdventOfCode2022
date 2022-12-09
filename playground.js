@@ -1,8 +1,7 @@
-workingDir = '/test/'
-splitWorkingDir = workingDir.split('/'); //Get the indivual folders of the workingDir
+testArr = [['test', 'test1'], ['test2','test3']]
 
-splitWorkingDir = splitWorkingDir.slice(1, splitWorkingDir.length - 1);
-console.log(splitWorkingDir);
-for (const nextDirectory of splitWorkingDir) {
-    console.log(nextDirectory)
-}
+testArr.forEach(line => {
+    line.push('This is the test');
+});
+
+console.log(testArr)
