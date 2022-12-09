@@ -6,8 +6,7 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
     moves = data.split('\r\n');
     console.log(moves)
 
-    headPos = [0, 0];
-    tailPos = [0, 0];
+    ropeKnots = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
 
     map = [['X']];
 
@@ -18,7 +17,7 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
             //If the Head is moving upwards
             case 'U': 
                 //Check if there is enough rows up to move,
-                if (headPos[0] < move[1]) {
+                if (ropeKnots[0][0] < move[1]) {
                     //If not, add new rows with the number of columns of the current top row
                     for (i = 0; i < move[1]; i++) {
                         newRow = []
@@ -26,22 +25,22 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
                             newRow.push('');
                         });
                         map.unshift(newRow);
-                        headPos[0]++;
-                        tailPos[0]++;
+                        ropeKnots.forEach(knot => {
+                            knot[0]++;
+                        })
                     }
                 }
                 //Now there are enough rows, preform the movements
                 for (i = 0; i < move[1]; i++) {
-                    headPos[0]--;
-                    if (tailPos[0] - headPos[0] > 1) {
-                        tailPos[0] = headPos[0] + 1;
-                        tailPos[1] = headPos[1];
+                    ropeKnots[0][0]--;
+                    for (j = 1; j < ropeKnots.length; j++) {
+                        moveKnot(ropeKnots[j-1], ropeKnots[j]);
                     }
-                    map[tailPos[0]][tailPos[1]] = 'X';
+                    map[ropeKnots[ropeKnots.length - 1][0]][ropeKnots[ropeKnots.length - 1][1]] = 'X';
                 }
                 break;
             case 'D':
-                if (map.length - headPos[0] - 1 < move[1]) {
+                if (map.length - ropeKnots[0][0] - 1 < move[1]) {
                     for (i = 0; i < move[1]; i++) {
                         newRow = []
                         map[0].forEach(() => {
@@ -51,35 +50,34 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
                     }
                 }
                 for (i = 0; i < move[1]; i++) {
-                    headPos[0]++;
-                    if (headPos[0] - tailPos[0] > 1) {
-                        tailPos[0] = headPos[0] - 1;
-                        tailPos[1] = headPos[1];
+                    ropeKnots[0][0]++;
+                    for (j = 1; j < ropeKnots.length; j++) {
+                        moveKnot(ropeKnots[j-1], ropeKnots[j]);
                     }
-                    map[tailPos[0]][tailPos[1]] = 'X';
+                    map[ropeKnots[ropeKnots.length - 1][0]][ropeKnots[ropeKnots.length - 1][1]] = 'X';
                 }
                 break;
             case 'L':
-                if (headPos[1] < move[1]) {
+                if (ropeKnots[0][1] < move[1]) {
                     for (i = 0; i < move[1]; i++) {
                         map.forEach(line => {
                             line.unshift('');
                         })
-                        headPos[1]++;
-                        tailPos[1]++;
+                        ropeKnots.forEach(knot => {
+                            knot[1]++;
+                        })
                     }
                 }
                 for (i = 0; i < move[1]; i++) {
-                    headPos[1]--;
-                    if (tailPos[1] - headPos[1] > 1) {
-                        tailPos[1] = headPos[1] + 1;
-                        tailPos[0] = headPos[0];
+                    ropeKnots[0][1]--;
+                    for (j = 1; j < ropeKnots.length; j++) {
+                        moveKnot(ropeKnots[j-1], ropeKnots[j]);
                     }
-                    map[tailPos[0]][tailPos[1]] = 'X';
+                    map[ropeKnots[ropeKnots.length - 1][0]][ropeKnots[ropeKnots.length - 1][1]] = 'X';
                 }
                 break;
             case 'R':
-                if (map[0].length - headPos[1] - 1 < move[1]) {
+                if (map[0].length - ropeKnots[0][1] - 1 < move[1]) {
                     for (i = 0; i < move[1]; i++) {
                         map.forEach(line => {
                             line.push('');
@@ -87,12 +85,11 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
                     }
                 }
                 for (i = 0; i < move[1]; i++) {
-                    headPos[1]++;
-                    if (headPos[1] - tailPos[1] > 1) {
-                        tailPos[1] = headPos[1] - 1;
-                        tailPos[0] = headPos[0];
+                    ropeKnots[0][1]++;
+                    for (j = 1; j < ropeKnots.length; j++) {
+                        moveKnot(ropeKnots[j-1], ropeKnots[j]);
                     }
-                    map[tailPos[0]][tailPos[1]] = 'X';
+                    map[ropeKnots[ropeKnots.length - 1][0]][ropeKnots[ropeKnots.length - 1][1]] = 'X';
                 }
                 break;
         }
@@ -100,10 +97,65 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
 
     console.log(map);
     tailVisitedCount = 0;
+    prettyMap = '';
     map.forEach(line => {
         line.forEach(entry => {
-            if (entry == 'X') tailVisitedCount++;
+            if (entry == 'X') {
+                tailVisitedCount++;
+                prettyMap += 'X'
+            }
+            else {
+                prettyMap += '.'
+            }
         })
+        prettyMap += '\n'
     })
+    console.log(`Pretty Map`)
+    console.log(prettyMap);
     console.log(`The tail visited ${tailVisitedCount} squares`)
 })
+
+moveTailUp = (head, tail) => {
+    tail[0] = head[0] + 1;
+    tail[1] = head[1];
+}
+moveTailDown = (head, tail) => {
+    tail[0] = head[0] - 1;
+    tail[1] = head[1];
+}
+moveTailLeft = (head, tail) => {
+    tail[1] = head[1] + 1;
+    tail[0] = head[0];
+}
+moveTailRight = (head, tail) => {
+    tail[1] = head[1] - 1;
+    tail[0] = head[0];
+}
+moveTailUpRight = (head, tail) => {
+    tail[0] = head[0] + 1;
+    tail[1] = head[1] - 1;
+}
+moveTailUpLeft = (head, tail) => {
+    tail[0] = head[0] + 1;
+    tail[1] = head[1] + 1;
+}
+moveTailDownRight = (head, tail) => {
+    tail[0] = head[0] - 1;
+    tail[1] = head[1] - 1;
+}
+moveTailDownLeft = (head, tail) => {
+    tail[0] = head[0] - 1;
+    tail[1] = head[1] + 1;
+}
+
+
+moveKnot = (head, tail) => {
+    if (tail[0] - head[0] > 1 && head[1] - tail[1] > 1) moveTailUpRight(head, tail);
+    else if (tail[0] - head[0] > 1 && tail[1] - head[1] > 1) moveTailUpLeft(head, tail);
+    else if (head[0] - tail[0] > 1 && tail[1] - head[1] > 1) moveTailDownLeft(head, tail);
+    else if (head[0] - tail[0] > 1 && head[1] - tail[1] > 1) moveTailDownRight(head, tail);
+    else if (tail[0] - head[0] > 1) moveTailUp(head, tail);
+    else if (head[0] - tail[0] > 1) moveTailDown(head, tail);
+    else if (tail[1] - head[1] > 1) moveTailLeft(head, tail);
+    else if (head[1] - tail[1] > 1) moveTailRight(head, tail);
+}
