@@ -3,8 +3,7 @@ const fs = require('fs');
 fs.readFile('Input.txt', 'utf-8', (err, data) => {
     if (err) throw err;
 
-    monkeyStarting = data.split('\r\n\r\n');
-    console.log(monkeyStarting);
+    monkeyStarting = data.split('\r\n\r\n'); 
 
     monkeys = [];
     monkeyStarting.forEach(monkey => {
@@ -12,15 +11,20 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
         monkeyStartingItems = monkey.match(/Starting items: ((?:(?:\d)+(?:, )?)+)/)[1];
         monkeyStartingItems = monkeyStartingItems.split(', ');
         for (index in monkeyStartingItems) {
-            monkeyStartingItems[index] = parseInt(monkeyStartingItems[index]);
+            monkeyStartingItems[index] = BigInt(monkeyStartingItems[index]);
         }
         //Get Monkey Operation
         monkeyOperation = monkey.match(/Operation: new = (.*)/)[1];
+        [monkeyOperation, monkeyOps, monkeyOpsNum] = monkeyOperation.match(/([^\d]*)(\d*)/);
+        if (monkeyOpsNum != '') {
+            monkeyOperation = monkeyOps + "BigInt(" + monkeyOpsNum + ")"
+        }
+        console.log(monkeyOperation)
         //Get Monkey Test
-        monkeyTest = parseInt(monkey.match(/Test: divisible by (\d*)/)[1]);
+        monkeyTest = BigInt(monkey.match(/Test: divisible by (\d*)/)[1]);
         //Get Monkey Throws
-        monkeyTrueThrow = parseInt(monkey.match(/If true: throw to monkey (\d*)/)[1]);
-        monkeyFalseThrow = parseInt(monkey.match(/If false: throw to monkey (\d*)/)[1]);
+        monkeyTrueThrow = BigInt(monkey.match(/If true: throw to monkey (\d*)/)[1]);
+        monkeyFalseThrow = BigInt(monkey.match(/If false: throw to monkey (\d*)/)[1]);
 
         //Store the monkey information in the array
         monkeys.push({
@@ -33,24 +37,33 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
         })
     });
 
-    for (round = 0; round < 20; round++) {
+    monkeys.sort((a, b) => a - b);
+    testArr = []
+    monkeys.forEach(monkey => {
+        testArr.push(monkey.test);
+    })
+    remainderGCD = BigInt(lcmArr(testArr, testArr.length))
+    console.log(remainderGCD);
+
+    for (round = 0; round < 10000; round++) {
         for (monkey of monkeys) {
             while (monkey.items.length > 0) {
                 curItem = monkey.items.shift();
                 old = curItem;
                 curItem = eval(monkey.operation);
-                curItem = parseInt(Math.floor(curItem / 3));
+                // curItem = parseInt(Math.floor(curItem / 3));
                 if (curItem % monkey.test == 0) {
-                    monkeys[monkey.trueThrow].items.push(curItem);
+                    monkeys[monkey.trueThrow].items.push(curItem % remainderGCD);
                 }
                 else {
-                    monkeys[monkey.falseThrow].items.push(curItem);
+                    monkeys[monkey.falseThrow].items.push(curItem % remainderGCD);
                 }
                 monkey.inspectionCount++;
             }
         }
-        console.log(`------Completed Round ${round}------`);
-        console.log(monkeys);
+        if ( round % 100 == 0) {
+            console.log(`Round ${round} completed`);
+        }
     }
 
     monkeys.sort((a, b) => a.inspectionCount - b.inspectionCount);
@@ -58,3 +71,20 @@ fs.readFile('Input.txt', 'utf-8', (err, data) => {
     monkeyBusiness = monkeys[monkeys.length - 1].inspectionCount * monkeys[monkeys.length - 2].inspectionCount;
     console.log(`Total Monkey Business ${monkeyBusiness}`);
 });
+
+gcd = (a, b) => {
+    if (a == 0) return b;
+    return gcd(b % a, a);
+}
+
+lcm = (a, b) => {
+    return (a * b) / gcd(a, b);
+}
+
+lcmArr = (arr, n) => {
+    result = arr[0];
+    for (i = 1; i < n; i++) {
+        result = lcm(arr[i], result);
+    }
+    return result;
+}
